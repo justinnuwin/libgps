@@ -7,6 +7,9 @@
 #include "nmea.h"
 #include "serial.h"
 
+gpgga_t gpgga;
+gprmc_t gprmc;
+
 extern void gps_init(void) {
     serial_init();
     serial_config();
@@ -19,14 +22,19 @@ extern void gps_on(void) {
 }
 
 // Compute the GPS location using decimal scale
-extern void gps_location(loc_t *coord) {
-    uint8_t status = _EMPTY;
-    while(status != _COMPLETED) {
-        gpgga_t gpgga;
-        gprmc_t gprmc;
-        char buffer[256];
+// returns 0 if using old data
+// returns 1 if using new data
+extern int gps_location(loc_t *coord) {
+    char buffer[256];
 
-        serial_readln(buffer, 256);
+    int data_ready = serial_readln(buffer);
+    if (!data_ready) {
+        coord->latitude = gpgga.latitude;
+        coord->longitude = gpgga.longitude;
+        coord->altitude = gpgga.altitude;
+        coord->speed = gprmc.speed;
+        coord->course = gprmc.course;
+    } else {
         switch (nmea_get_message_type(buffer)) {
             case NMEA_GPGGA:
                 nmea_parse_gpgga(buffer, &gpgga);
@@ -37,7 +45,6 @@ extern void gps_location(loc_t *coord) {
                 coord->longitude = gpgga.longitude;
                 coord->altitude = gpgga.altitude;
 
-                status |= NMEA_GPGGA;
                 break;
             case NMEA_GPRMC:
                 nmea_parse_gprmc(buffer, &gprmc);
@@ -45,10 +52,10 @@ extern void gps_location(loc_t *coord) {
                 coord->speed = gprmc.speed;
                 coord->course = gprmc.course;
 
-                status |= NMEA_GPRMC;
                 break;
         }
     }
+    return data_ready;
 }
 
 extern void gps_off(void) {

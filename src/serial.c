@@ -5,6 +5,10 @@
 #include <termios.h>
 #include <inttypes.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <sys/ioctl.h>
 
 #include "serial.h"
 
@@ -27,7 +31,7 @@ void serial_config(void)
     options.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
     options.c_iflag = IGNPAR;
     options.c_oflag = 0;
-    options.c_lflag = 0;
+    options.c_lflag = ICANON;
     tcflush(uart0_filestream, TCIFLUSH);
     tcsetattr(uart0_filestream, TCSANOW, &options);
 }
@@ -49,26 +53,38 @@ void serial_println(const char *line, int len)
 }
 
 // Read a line from UART.
-// Return a 0 len string in case of problems with UART
-void serial_readln(char *buffer, int len)
+int serial_readln(char *buffer)
 {
-    char c;
-    char *b = buffer;
-    int rx_length = -1;
-    while(1) {
-        rx_length = read(uart0_filestream, (void*)(&c), 1);
+    int bytes_read = 0;
+    struct timeval timeout = {.tv_sec = 0, .tv_usec = 0};
+    fd_set input_fdset;
+    FD_ZERO(&input_fdset);
+    FD_SET(uart0_filestream, &input_fdset);
 
-        if (rx_length <= 0) {
-            //wait for messages
-            sleep(1);
-        } else {
-            if (c == '\n') {
-                *b++ = '\0';
-                break;
+    switch (select(uart0_filestream + 1, &input_fdset, NULL, NULL, &timeout)) {
+        case -1:
+            perror("Select failed");
+            break;
+        case 0:
+            // Nothing available to read
+            break;
+        default: {
+            ioctl(uart0_filestream, FIONREAD, &bytes_read);
+            int bytes_recv = bytes_read;
+            while (bytes_recv > 0) {
+                if (read(uart0_filestream, (void *)(buffer), 1) < 0)
+                    perror("Error reading UART buffer");
+                if (*buffer == '\n') {
+                    *buffer++ = '\0';
+                    break;
+                }
+                buffer++;
+                bytes_recv--;
             }
-            *b++ = c;
+            break;
         }
-    }
+    };
+    return bytes_read;
 }
 
 void serial_close(void)

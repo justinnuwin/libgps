@@ -9,9 +9,10 @@ int main(void) {
     loc_t data;
 
     while (1) {
-        gps_location(&data);
+        int new = gps_location(&data);
 
-        printf("%lf %lf\n", data.latitude, data.longitude);
+        printf("%c %lf %lf\n",
+                new ? '!' : '-', data.latitude, data.longitude);
     }
 
     return EXIT_SUCCESS;

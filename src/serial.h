@@ -10,7 +10,7 @@
 void serial_init(void);
 void serial_config(void);
 void serial_println(const char *, int);
-void serial_readln(char *, int);
+int serial_readln(char *);
 void serial_close(void);
 
 #endif
