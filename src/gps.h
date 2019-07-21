@@ -6,6 +6,9 @@ extern "C" {
 #endif
 
 struct location {
+    int hour;
+    int minute;
+    int second;
     double latitude;
     double longitude;
     double speed;

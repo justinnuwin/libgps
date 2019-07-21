@@ -11,8 +11,8 @@ int main(void) {
     while (1) {
         int new = gps_location(&data);
 
-        printf("%c %lf %lf\n",
-                new ? '!' : '-', data.latitude, data.longitude);
+        printf("%c %02d:%02d:%02d %lf %lf\n",
+                new ? '!' : '-', data.hour, data.minute, data.second, data.latitude, data.longitude);
     }
 
     return EXIT_SUCCESS;

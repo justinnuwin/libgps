@@ -2,11 +2,12 @@ RM=/bin/rm
 CC=/usr/bin/gcc
 CFLAGS=-g -Wall -O3
 MAKE=/usr/bin/make
+LIBS=-lgps -lm
 
 all: position_logger
 
-position_logger:
-	${CC} ${CFLAGS} -o position_logger position_logger.c -lgps -lm
+position_logger: position_logger.c
+	${CC} ${CFLAGS} -o $@ $^ $(LIBS)
 
 .PHONY: clean
 

@@ -10,7 +10,8 @@ void nmea_parse_gpgga(char *nmea, gpgga_t *loc)
 {
     char *p = nmea;
 
-    p = strchr(p, ',')+1; //skip time
+    p = strchr(p, ',')+1;
+    sscanf(p, "%2d%2d%2d", &(loc->hour), &(loc->minute), &(loc->second));
 
     p = strchr(p, ',')+1;
     loc->latitude = atof(p);
@@ -60,7 +61,8 @@ void nmea_parse_gprmc(char *nmea, gprmc_t *loc)
 {
     char *p = nmea;
 
-    p = strchr(p, ',')+1; //skip time
+    p = strchr(p, ',')+1;
+    sscanf(p, "%2d%2d%2d", &(loc->hour), &(loc->minute), &(loc->second));
     p = strchr(p, ',')+1; //skip status
 
     p = strchr(p, ',')+1;

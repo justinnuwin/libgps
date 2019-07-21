@@ -17,6 +17,9 @@
 #define NMEA_MESSAGE_ERR 0xC0
 
 struct gpgga {
+    int hour;
+    int minute;
+    int second;
     // Latitude eg: 4124.8963 (XXYY.ZZKK.. DEG, MIN, SEC.SS)
     double latitude;
     // Latitude eg: N
@@ -35,6 +38,9 @@ struct gpgga {
 typedef struct gpgga gpgga_t;
 
 struct gprmc {
+    int hour;
+    int minute;
+    int second;
     double latitude;
     char lat;
     double longitude;

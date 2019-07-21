@@ -21,6 +21,8 @@ extern void gps_on(void) {
     //Write on
 }
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+
 // Compute the GPS location using decimal scale
 // returns 0 if using old data
 // returns 1 if using new data
@@ -29,6 +31,9 @@ extern int gps_location(loc_t *coord) {
 
     int data_ready = serial_readln(buffer);
     if (!data_ready) {
+        coord->hour = MAX(gpgga.hour, gprmc.hour);
+        coord->minute = MAX(gpgga.minute, gprmc.minute);
+        coord->second = MAX(gpgga.second, gprmc.second);
         coord->latitude = gpgga.latitude;
         coord->longitude = gpgga.longitude;
         coord->altitude = gpgga.altitude;
@@ -41,6 +46,10 @@ extern int gps_location(loc_t *coord) {
 
                 gps_convert_deg_to_dec(&(gpgga.latitude), gpgga.lat, &(gpgga.longitude), gpgga.lon);
 
+                coord->hour = gpgga.hour;
+                coord->minute = gpgga.minute;
+                coord->second = gpgga.second;
+
                 coord->latitude = gpgga.latitude;
                 coord->longitude = gpgga.longitude;
                 coord->altitude = gpgga.altitude;
@@ -48,6 +57,10 @@ extern int gps_location(loc_t *coord) {
                 break;
             case NMEA_GPRMC:
                 nmea_parse_gprmc(buffer, &gprmc);
+
+                coord->hour = gprmc.hour;
+                coord->minute = gprmc.minute;
+                coord->second = gprmc.second;
 
                 coord->speed = gprmc.speed;
                 coord->course = gprmc.course;
